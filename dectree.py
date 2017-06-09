@@ -85,6 +85,5 @@ def print_tree(node, depth=0):
 
 dataset = pd.read_csv("data.csv")
 sample = dataset.head()
-#print(sample)
-#print()
-get_split(dataset)
+print(sample)
+get_split(sample)
