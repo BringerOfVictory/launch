@@ -10,6 +10,8 @@ def test_split(index, value, dataset):
          left = left.append(row.to_frame().transpose())
       else:
          right = right.append(row.to_frame().transpose())
+   left.columns = dataset.columns
+   right.columns = dataset.columns
    return [left, right]
 
 # Calculate the Gini index for a split dataset
@@ -40,29 +42,30 @@ def get_split(dataset):
 
 # Create a terminal node value
 def to_terminal(group):
-   outcomes = [row[-1] for row in group]
+   outcomes = list(group['diagnosis'])
    return max(set(outcomes), key=outcomes.count)
 
 # Create child splits for a node or make terminal
 def split(node, max_depth, min_size, depth):
-   left, right = node['groups']
+   left = node['groups'][0]
+   right = node['groups'][1]
    del(node['groups'])
    # check for a no split
-   if not left or not right:
-      node['left'] = node['right'] = to_terminal(left + right)
+   if left is None or right is None:
+      node['left'] = node['right'] = to_terminal(pd.concat([left, right]))
       return
    # check for max depth
    if depth >= max_depth:
       node['left'], node['right'] = to_terminal(left), to_terminal(right)
       return
    # process left child
-   if len(left) <= min_size:
+   if len(left.index) <= min_size:
       node['left'] = to_terminal(left)
    else:
       node['left'] = get_split(left)
       split(node['left'], max_depth, min_size, depth+1)
    # process right child
-   if len(right) <= min_size:
+   if len(right.index) <= min_size:
       node['right'] = to_terminal(right)
    else:
       node['right'] = get_split(right)
@@ -84,6 +87,7 @@ def print_tree(node, depth=0):
       print('%s[%s]' % ((depth*' ', node)))
 
 dataset = pd.read_csv("data.csv")
-sample = dataset.head()
-print(sample)
-get_split(sample)
+sample = dataset[0:30]
+print_tree(build_tree(sample, 10, 2))
+#print(sample)
+#print()
