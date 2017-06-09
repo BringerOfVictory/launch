@@ -10,8 +10,8 @@ def test_split(index, value, dataset):
          left = left.append(row.to_frame().transpose())
       else:
          right = right.append(row.to_frame().transpose())
-   left.columns = dataset.columns
-   right.columns = dataset.columns
+   #left.columns = dataset.columns
+   #right.columns = dataset.columns
    return [left, right]
 
 # Calculate the Gini index for a split dataset
@@ -34,7 +34,7 @@ def get_split(dataset):
       for index, row in dataset.iterrows():
          groups = test_split(attribute, row[attribute], dataset)
          gini = gini_index(groups, class_values)
-         #print('X[%s] < %.3f Gini=%.3f' % ((attribute), row[attribute], gini))
+         print('X[%s] < %.3f Gini=%.3f' % ((attribute), row[attribute], gini))
          if gini < b_score:
             b_index, b_value, b_score, b_groups = attribute, row[attribute], gini, groups
    print('index=', b_index, 'value=', b_value, 'gini=', b_score)
@@ -42,7 +42,7 @@ def get_split(dataset):
 
 # Create a terminal node value
 def to_terminal(group):
-   outcomes = list(group['diagnosis'])
+   outcomes = classes
    return max(set(outcomes), key=outcomes.count)
 
 # Create child splits for a node or make terminal
@@ -79,15 +79,18 @@ def build_tree(train, max_depth, min_size):
 
 # Print a decision tree
 def print_tree(node, depth=0):
+
    if isinstance(node, dict):
-      print('%s[X%d < %.3f]' % ((depth*' ', (node['index']+1), node['value'])))
+      print('%s[X%s < %.3f]' % ((depth*' ', (node['index']), node['value'])))
       print_tree(node['left'], depth+1)
       print_tree(node['right'], depth+1)
    else:
       print('%s[%s]' % ((depth*' ', node)))
 
 dataset = pd.read_csv("data.csv")
-sample = dataset[0:30]
-print_tree(build_tree(sample, 10, 2))
+sample = dataset[0:10]
+#my_split = get_split(sample)
+#print('Split: [X%s < %.3f]' % ((my_split['index']), my_split['value']))
+print_tree(build_tree(sample, 15, 10))
 #print(sample)
 #print()
